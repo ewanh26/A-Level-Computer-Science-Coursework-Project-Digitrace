@@ -46,7 +46,7 @@ public class LearningModeForm extends JFrame {
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setVisible(true);
 
-        NN = new NeuralNetwork();
+        NN = new NeuralNetwork(false);
         currPred = new NNPrediction(0, 1);
 
         drawingGrid.addMouseListener(new MouseAdapter() {

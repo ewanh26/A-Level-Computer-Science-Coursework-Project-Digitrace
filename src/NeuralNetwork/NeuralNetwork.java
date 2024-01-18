@@ -12,17 +12,19 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.LinkedList;
+import java.util.Scanner;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
+import org.json.JSONObject;
+import org.json.JSONArray;
 
 public class NeuralNetwork {
     private Layer[] layers;
     private LinkedList<Sample> samples;
     private final double ALPHA = 0.2d;
 
-    public NeuralNetwork() {
+    public NeuralNetwork(boolean initToZero) {
         layers = new Layer[5];
         layers[0] = new Layer(LayerType.INPUT);
         layers[1] = new Layer(LayerType.HIDDEN);
@@ -30,7 +32,7 @@ public class NeuralNetwork {
         layers[3] = new Layer(LayerType.PRE_OUTPUT);
         layers[4] = new Layer(LayerType.OUTPUT);
         samples = new LinkedList<>();
-        randomise();
+        if (!initToZero) randomise();
     }
 
     private void randomise() {
@@ -221,6 +223,51 @@ public class NeuralNetwork {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public int loadFromJSON(String fileName) {
+        File file;
+        Scanner scanner;
+        StringBuilder sb; // To piece file together
+        String jsonString;
+
+        // Open file
+        file = new File(fileName);
+        try {
+            scanner = new Scanner(file);
+        } catch (FileNotFoundException e) {
+            return 1;
+        }
+
+        // Read file
+        sb = new StringBuilder();
+        while (scanner.hasNextLine()) {
+            sb.append(scanner.nextLine());
+        }
+        scanner.close();
+
+        jsonString = sb.toString();
+        JSONObject parsedJSON = new JSONObject(jsonString);
+        JSONArray layersJSON = new JSONArray(parsedJSON.getJSONArray("layers"));
+        for (int layerIdx = 0; layerIdx < 4; ++layerIdx) {
+            for (int i = 0; i < layers[layerIdx+1].getRows(); ++i) {
+                // alterWeight/alterBias equivalent to
+                // setting when initial value is 0
+                JSONObject layerJSON = new JSONObject(layersJSON.getJSONObject(i));
+                JSONArray weightsJSON = new JSONArray(layerJSON.getJSONArray("weights"));
+                JSONArray biasesJSON = new JSONArray(layerJSON.getJSONArray("biases"));
+                layers[layerIdx].alterBias(
+                        i, biasesJSON.getDouble(i)
+                );
+                for (int j = 0; j < layers[layerIdx].getRows(); ++j) {
+                    layers[layerIdx].alterWeight(
+                            i, j,
+                            weightsJSON.getDouble(i * layers[layerIdx].getRows() + j)
+                    );
+                }
+            }
+        }
+        return 0;
     }
 }
 
