@@ -1,21 +1,25 @@
-import LinearAlgebra.Matrix;
+import NeuralNetwork.NeuralNetwork;
+import NeuralNetwork.NNPrediction;
+import Sampling.Sample;
+import Sampling.SampleImage;
 import Utils.Utils;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.Arrays;
 
 public class PredictionModeForm extends JFrame {
     private JPanel panel1;
-    private JTextField textField1;
+    private JTextField fileNameTextField;
     private JTable drawingGrid;
     private JButton deleteButton;
     private JButton predictButton;
     private JLabel predictionLabelResult;
     private JButton backButton;
+    private JButton confirmFileButton;
     private int rowSelected;
     private int colSelected;
 
@@ -26,6 +30,38 @@ public class PredictionModeForm extends JFrame {
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setVisible(true);
 
+        predictButton.setEnabled(false);
+        deleteButton.setEnabled(false);
+        NeuralNetwork NN = new NeuralNetwork(true);
+
+        confirmFileButton.addActionListener(e -> {
+            String fileName = fileNameTextField.getText();
+            int loadStatus = NN.loadFromJSON(fileName);
+
+            // File could not load
+            if (loadStatus == 1) {
+                fileNameTextField.setForeground(Color.RED);
+                predictButton.setEnabled(false);
+                deleteButton.setEnabled(false);
+                return;
+            }
+
+            // Could load
+            fileNameTextField.setForeground(Color.GREEN);
+            predictButton.setEnabled(true);
+            deleteButton.setEnabled(true);
+        });
+        predictButton.addActionListener(e -> {
+            int[] binaryArray;
+            NNPrediction prediction;
+            Sample sampleInput;
+
+            binaryArray = Utils.tableToBinaryArray(drawingGrid);
+            // We do not care about the label here
+            sampleInput = new Sample(new SampleImage(binaryArray), 0);
+            prediction = NN.predict(sampleInput);
+            predictionLabelResult.setText(String.format("%d", prediction.getResult()));
+        });
         drawingGrid.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {

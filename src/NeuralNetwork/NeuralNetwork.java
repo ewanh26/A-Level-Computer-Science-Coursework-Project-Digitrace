@@ -16,6 +16,7 @@ import java.util.Scanner;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jdk.jshell.execution.Util;
 import org.json.JSONObject;
 import org.json.JSONArray;
 
@@ -239,6 +240,8 @@ public class NeuralNetwork {
             return 1;
         }
 
+        if (!fileName.endsWith(".json")) return 1;
+
         // Read file
         sb = new StringBuilder();
         while (scanner.hasNextLine()) {
@@ -250,19 +253,19 @@ public class NeuralNetwork {
         JSONObject parsedJSON = new JSONObject(jsonString);
         JSONArray layersJSON = new JSONArray(parsedJSON.getJSONArray("layers"));
         for (int layerIdx = 0; layerIdx < 4; ++layerIdx) {
+            JSONObject layerJSON = layersJSON.getJSONObject(layerIdx);
             for (int i = 0; i < layers[layerIdx+1].getRows(); ++i) {
                 // alterWeight/alterBias equivalent to
                 // setting when initial value is 0
-                JSONObject layerJSON = new JSONObject(layersJSON.getJSONObject(i));
-                JSONArray weightsJSON = new JSONArray(layerJSON.getJSONArray("weights"));
-                JSONArray biasesJSON = new JSONArray(layerJSON.getJSONArray("biases"));
+                JSONArray weightsJSON = layerJSON.getJSONArray("weights");
+                JSONArray biasesJSON = layerJSON.getJSONArray("biases");
                 layers[layerIdx].alterBias(
                         i, biasesJSON.getDouble(i)
                 );
                 for (int j = 0; j < layers[layerIdx].getRows(); ++j) {
                     layers[layerIdx].alterWeight(
                             i, j,
-                            weightsJSON.getDouble(i * layers[layerIdx].getRows() + j)
+                            weightsJSON.getJSONArray(i).getDouble(j)
                     );
                 }
             }
