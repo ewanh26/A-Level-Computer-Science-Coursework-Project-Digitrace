@@ -15,6 +15,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -170,14 +171,18 @@ public class LearningModeForm extends JFrame {
             ioE.printStackTrace();
             return;
         }
-        List<File> files = paths
+        List<File> files = new java.util.ArrayList<>(
+                paths
                 // Gets rid of directories
                 .filter(Files::isRegularFile)
                 // Converts files to absolute paths
                 .map(Path::toAbsolutePath)
                 // Path -> File
                 .map(Path::toFile)
-                .toList();
+                .toList());
+
+        // So it can sample in a random order
+        Collections.shuffle(files);
 
         paths.close();
 
@@ -185,6 +190,7 @@ public class LearningModeForm extends JFrame {
             SampleImage sImg = new SampleImage(f);
             // file[0] (first char) will be the label
             Sample s = new Sample(sImg, Integer.parseInt(f.getName().substring(0, 1)));
+            NN.addSample(s);
             NN.addSample(s);
             totalSamplesLabel.setText(String.format("%d", NN.getSampleAmount()));
         });
