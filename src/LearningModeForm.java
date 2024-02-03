@@ -5,10 +5,7 @@ import Sampling.SampleImage;
 import Utils.Utils;
 
 import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -35,6 +32,7 @@ public class LearningModeForm extends JFrame {
     private JButton saveModelButton;
     private int rowSelected;
     private int colSelected;
+    private boolean penDown;
     private int iterNumber;
     private int sampleAmount;
     private NNPrediction currPred;
@@ -49,17 +47,11 @@ public class LearningModeForm extends JFrame {
 
         NN = new NeuralNetwork(false);
         currPred = new NNPrediction(0, 1);
-
+        penDown = false;
         drawingGrid.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                rowSelected = drawingGrid.rowAtPoint(e.getPoint());
-                colSelected = drawingGrid.columnAtPoint(e.getPoint());
-                if (drawingGrid.getValueAt(rowSelected, colSelected) == null) {
-                    drawingGrid.setValueAt("///", rowSelected, colSelected);
-                } else {
-                    drawingGrid.setValueAt(null, rowSelected, colSelected);
-                }
+                penDown = !penDown;
             }
         });
         backButton.addActionListener(e -> dispose());
@@ -132,6 +124,19 @@ public class LearningModeForm extends JFrame {
             NN.storeAsJSON(fileName);
             saveModelButton.setText("Model stored in " + fileName + ".json");
             saveModelButton.setEnabled(false);
+        });
+        drawingGrid.addMouseMotionListener(new MouseMotionAdapter() {
+            @Override
+            public void mouseMoved(MouseEvent e) {
+                super.mouseMoved(e);
+                if (penDown) {
+                    rowSelected = drawingGrid.rowAtPoint(e.getPoint());
+                    colSelected = drawingGrid.columnAtPoint(e.getPoint());
+                    if (drawingGrid.getValueAt(rowSelected, colSelected) == null) {
+                        drawingGrid.setValueAt("///", rowSelected, colSelected);
+                    }
+                }
+            }
         });
     }
 
