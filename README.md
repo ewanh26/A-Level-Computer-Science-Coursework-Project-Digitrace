@@ -2,7 +2,7 @@
 
 ## Project Introduction
 
-The premise of my project – called “DigiTrace” - is to exhibit the process of machine
+The premise of my A-Level Computer Science project – called “DigiTrace” - is to exhibit the process of machine
 learning in the context of recognising handwritten digits. This would include a GUI
 interface to display the samples used to train the model, take handwritten samples from
 the user, show the samples being used, visualise the neural network and output digit
